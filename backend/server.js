@@ -36,25 +36,37 @@ const Course = mongoose.model('Course', courseSchema);
 
 
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.header('Authorization');
+    const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-  
-    if (!token) return res.status(401).json({ message: 'Access denied' });
-  
-    try {
-      const verified = jwt.verify(token, 'your_jwt_secret');
-      req.user = verified;
-      next();
-    } catch (error) {
-      res.status(400).json({ message: 'Invalid token' });
+
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
-  };
+
+    try {
+        const verified = jwt.verify(token, 'your_jwt_secret');
+        req.user = verified;
+        next();
+    } catch (error) {
+        res.status(400).json({ message: 'Invalid token' });
+    }
+};
+
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'academically';
 
 // Routes
 
 //authentication route
 app.post('/auth/register', async (req, res) => {
     try {
+      // Check if trying to register as admin
+      if (req.body.role === 'admin') {
+        // Verify admin secret key
+        if (req.headers['admin-secret-key'] !== ADMIN_SECRET_KEY) {
+          return res.status(403).json({ message: 'Invalid admin secret key' });
+        }
+      }
+  
       // Check if user already exists
       const emailExists = await User.findOne({ email: req.body.email });
       if (emailExists) {
@@ -69,7 +81,7 @@ app.post('/auth/register', async (req, res) => {
       const user = new User({
         email: req.body.email,
         password: hashedPassword,
-        role: req.body.role || 'user' 
+        role: req.body.role === 'admin' ? 'admin' : 'user'
       });
   
       const savedUser = await user.save();
@@ -118,59 +130,60 @@ app.get('/courses', async (req, res) => {
 });
 
 //add new course
-app.post('/admin/courses', async (req, res) => {
-
+app.post('/admin/courses', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
-      }
-  const course = new Course({
-    title: req.body.title,
-    description: req.body.description,
-    duration: req.body.duration,
-    instructor: req.body.instructor
-  });
+    }
+    
+    const course = new Course({
+        title: req.body.title,
+        description: req.body.description,
+        duration: req.body.duration,
+        instructor: req.body.instructor
+    });
 
-  try {
-    const newCourse = await course.save();
-    res.status(201).json(newCourse);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const newCourse = await course.save();
+        res.status(201).json(newCourse);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-//delete course
-app.delete('/admin/courses/:id', async (req, res) => {
-
+// Delete course
+app.delete('/admin/courses/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
-      }
-  try {
-    await Course.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Course deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    }
+    
+    try {
+        await Course.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Course deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
-
-//update course
-
+// Update course
 app.put('/admin/courses/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied' });
+        return res.status(403).json({ message: 'Access denied' });
     }
-  
+    
     try {
-      const updatedCourse = await Course.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
-      res.json(updatedCourse);
+        const updatedCourse = await Course.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        res.json(updatedCourse);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+        res.status(400).json({ message: error.message });
     }
-  });
+});
+
+// Make sure your authenticateToken middleware is correctly implemented
+
 
 // Start server
 const PORT = 3001;
