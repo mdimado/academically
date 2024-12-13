@@ -69,7 +69,7 @@ app.post('/auth/register', async (req, res) => {
       const user = new User({
         email: req.body.email,
         password: hashedPassword,
-        role: req.body.role || 'user' // Only for testing - in production, remove role assignment
+        role: req.body.role || 'user' 
       });
   
       const savedUser = await user.save();

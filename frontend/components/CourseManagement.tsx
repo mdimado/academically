@@ -1,8 +1,10 @@
+'use client'
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import UpdateCourseDialog from './UpdateCourseDialog';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
@@ -12,7 +14,6 @@ const CourseManagement = () => {
     duration: '',
     instructor: ''
   });
-  const [isAdmin] = useState(true); // Hardcoded for now
 
   useEffect(() => {
     fetchCourses();
@@ -38,10 +39,12 @@ const CourseManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
       await fetch('http://localhost:3001/admin/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(newCourse),
       });
@@ -54,8 +57,12 @@ const CourseManagement = () => {
 
   const handleDelete = async (courseId) => {
     try {
+      const token = localStorage.getItem('token');
       await fetch(`http://localhost:3001/admin/courses/${courseId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       fetchCourses();
     } catch (error) {
@@ -67,54 +74,52 @@ const CourseManagement = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Course Management</h1>
       
-      {isAdmin && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Add New Course</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  name="title"
-                  placeholder="Course Title"
-                  value={newCourse.title}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Textarea
-                  name="description"
-                  placeholder="Course Description"
-                  value={newCourse.description}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Input
-                  name="duration"
-                  placeholder="Duration (e.g., 10 hours)"
-                  value={newCourse.duration}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Input
-                  name="instructor"
-                  placeholder="Instructor Name"
-                  value={newCourse.instructor}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <Button type="submit">Add Course</Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Add New Course</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Input
+                name="title"
+                placeholder="Course Title"
+                value={newCourse.title}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Textarea
+                name="description"
+                placeholder="Course Description"
+                value={newCourse.description}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Input
+                name="duration"
+                placeholder="Duration (e.g., 10 hours)"
+                value={newCourse.duration}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Input
+                name="instructor"
+                placeholder="Instructor Name"
+                value={newCourse.instructor}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+            <Button type="submit">Add Course</Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {courses.map((course) => (
@@ -126,17 +131,15 @@ const CourseManagement = () => {
               <p className="mb-2">{course.description}</p>
               <p className="text-sm">Duration: {course.duration}</p>
               <p className="text-sm">Instructor: {course.instructor}</p>
-              {isAdmin ? (
+              <div className="flex space-x-2 mt-4">
+                <UpdateCourseDialog course={course} onUpdate={fetchCourses} />
                 <Button 
                   onClick={() => handleDelete(course._id)}
                   variant="destructive"
-                  className="mt-4"
                 >
                   Delete Course
                 </Button>
-              ) : (
-                <Button className="mt-4">Enroll</Button>
-              )}
+              </div>
             </CardContent>
           </Card>
         ))}
