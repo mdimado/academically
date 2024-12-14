@@ -10,10 +10,11 @@ app.use(cors());
 app.use(express.json());
 
 //mongodb connection
-mongoose.connect('mongodb://localhost:27017/lms', {
+mongoose.connect('mongodb+srv://mdimad005:3NdO97CXatpGJsWk@cluster0.xwdau.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+
 
 //user schems
 const userSchema = new mongoose.Schema({
@@ -63,7 +64,7 @@ const enrollmentSchema = new mongoose.Schema({
     }
 
     try {
-        const verified = jwt.verify(token, 'your_jwt_secret');
+        const verified = jwt.verify(token, 'academically');
         req.user = verified;
         next();
     } catch (error) {
@@ -120,7 +121,7 @@ app.post('/auth/login', async (req, res) => {
   
       const token = jwt.sign(
         { _id: user._id, role: user.role },
-        'your_jwt_secret', 
+        'academically', 
         { expiresIn: '24h' }
       );
   
