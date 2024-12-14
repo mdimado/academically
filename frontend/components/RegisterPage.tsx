@@ -1,10 +1,6 @@
 'use client'
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
 
 const RegisterPage = () => {
@@ -66,83 +62,130 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Register</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="user" className="w-full" onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="user">User</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
-            </TabsList>
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="w-full max-w-md border-4 border-black bg-white p-8 
+        shadow-[8px_8px_0_rgba(0,0,0,1)]">
+        <h1 className="text-4xl font-bold mb-8 uppercase text-center 
+          bg-yellow-400 text-black p-4 border-2 border-black 
+          shadow-[6px_6px_0_rgba(0,0,0,1)]">
+          Register
+        </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full"
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full"
-                  required
-                  minLength={6}
-                />
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full"
-                  required
-                  minLength={6}
-                />
-              </div>
-              
-              {activeTab === 'admin' && (
-                <div>
-                  <Input
-                    type="password"
-                    name="adminKey"
-                    placeholder="Admin Secret Key"
-                    value={formData.adminKey}
-                    onChange={handleInputChange}
-                    className="w-full"
-                    required
-                  />
-                </div>
-              )}
-              
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button type="submit" className="w-full">
-                Register as {activeTab === 'admin' ? 'Admin' : 'User'}
-              </Button>
-              <p className="text-center text-sm text-gray-600">
-                Already have an account?{' '}
-                <Link href="/" className="text-blue-600 hover:underline">
-                  Login here
-                </Link>
-              </p>
-            </form>
-          </Tabs>
-        </CardContent>
-      </Card>
+        <div className="flex border-4 border-black mb-6">
+          <button 
+            onClick={() => handleTabChange('user')}
+            className={`w-1/2 py-3 uppercase font-bold border-r-4 border-black
+              ${activeTab === 'user' 
+                ? 'bg-green-400 text-black' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          >
+            User
+          </button>
+          <button 
+            onClick={() => handleTabChange('admin')}
+            className={`w-1/2 py-3 uppercase font-bold 
+              ${activeTab === 'admin' 
+                ? 'bg-pink-400 text-black' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          >
+            Admin
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              required
+            />
+          </div>
+          
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              required
+              minLength={6}
+            />
+          </div>
+          
+          <div>
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              required
+              minLength={6}
+            />
+          </div>
+          
+          {activeTab === 'admin' && (
+            <div>
+              <input
+                type="password"
+                name="adminKey"
+                placeholder="Admin Secret Key"
+                value={formData.adminKey}
+                onChange={handleInputChange}
+                className="w-full p-3 border-4 border-black 
+                  bg-white font-mono text-lg 
+                  focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                required
+              />
+            </div>
+          )}
+          
+          {error && (
+            <p className="text-white bg-red-600 border-2 border-black 
+              p-2 text-center font-bold uppercase">
+              {error}
+            </p>
+          )}
+          
+          <button 
+            type="submit" 
+            className="w-full py-4 text-lg font-bold uppercase 
+              bg-blue-400 text-black border-4 border-black 
+              shadow-[6px_6px_0_rgba(0,0,0,1)] 
+              hover:bg-blue-500 
+              active:translate-x-[2px] active:translate-y-[2px] 
+              active:shadow-[4px_4px_0_rgba(0,0,0,1)] 
+              transition-all duration-200"
+          >
+            Register as {activeTab === 'admin' ? 'Admin' : 'User'}
+          </button>
+
+          <p className="text-center text-sm uppercase font-mono">
+            Already have an account?{' '}
+            <Link 
+              href="/" 
+              className="text-blue-600 underline 
+                hover:bg-blue-200 hover:px-1 
+                border-b-2 border-black"
+            >
+              Login here
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

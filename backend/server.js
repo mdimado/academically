@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-//course Schema
+//course schema
 const courseSchema = new mongoose.Schema({
   title: String,
   description: String,
@@ -34,8 +34,27 @@ const courseSchema = new mongoose.Schema({
 
 const Course = mongoose.model('Course', courseSchema);
 
+//enrollment schema
+const enrollmentSchema = new mongoose.Schema({
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true 
+    },
+    enrolledCourses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course'
+    }],
+    enrollmentDate: {
+      type: Date,
+      default: Date.now
+    }
+  });
+  
+  const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
 
-const authenticateToken = (req, res, next) => {
+
+  const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -54,30 +73,25 @@ const authenticateToken = (req, res, next) => {
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'academically';
 
-// Routes
+//routes
 
 //authentication route
 app.post('/auth/register', async (req, res) => {
     try {
-      // Check if trying to register as admin
       if (req.body.role === 'admin') {
-        // Verify admin secret key
         if (req.headers['admin-secret-key'] !== ADMIN_SECRET_KEY) {
           return res.status(403).json({ message: 'Invalid admin secret key' });
         }
       }
   
-      // Check if user already exists
       const emailExists = await User.findOne({ email: req.body.email });
       if (emailExists) {
         return res.status(400).json({ message: 'Email already exists' });
       }
   
-      // Hash the password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
   
-      // Create new user
       const user = new User({
         email: req.body.email,
         password: hashedPassword,
@@ -94,22 +108,19 @@ app.post('/auth/register', async (req, res) => {
 
 app.post('/auth/login', async (req, res) => {
     try {
-      // Check if user exists
       const user = await User.findOne({ email: req.body.email });
       if (!user) {
         return res.status(400).json({ message: 'Email not found' });
       }
   
-      // Check password
       const validPassword = await bcrypt.compare(req.body.password, user.password);
       if (!validPassword) {
         return res.status(400).json({ message: 'Invalid password' });
       }
   
-      // Create and assign token
       const token = jwt.sign(
         { _id: user._id, role: user.role },
-        'your_jwt_secret', // In production, use an environment variable
+        'your_jwt_secret', 
         { expiresIn: '24h' }
       );
   
@@ -150,7 +161,7 @@ app.post('/admin/courses', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete course
+//delete 
 app.delete('/admin/courses/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
@@ -164,7 +175,7 @@ app.delete('/admin/courses/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Update course
+//update
 app.put('/admin/courses/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
@@ -182,10 +193,69 @@ app.put('/admin/courses/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Make sure your authenticateToken middleware is correctly implemented
+//enrollment routes
+app.post('/users/enroll/:courseId', authenticateToken, async (req, res) => {
+    console.log('Enrollment Request Details:');
+    console.log('User ID:', req.user);  
+    console.log('Course ID:', req.params.courseId);
+    console.log('Request Headers:', req.headers);
+
+    try {
+      const userId = req.user._id;
+      const courseId = req.params.courseId;
+  
+      const course = await Course.findById(courseId);
+      if (!course) {
+        console.log(`Course not found: ${courseId}`);
+        return res.status(404).json({ message: 'Course not found' });
+      }
+  
+      let enrollment = await Enrollment.findOne({ userId });
+      
+      if (!enrollment) {
+        enrollment = new Enrollment({
+          userId,
+          enrolledCourses: [courseId]
+        });
+      } else {
+        if (enrollment.enrolledCourses.includes(courseId)) {
+          console.log(`Already enrolled: User ${userId}, Course ${courseId}`);
+          return res.status(400).json({ message: 'Already enrolled in this course' });
+        }
+        enrollment.enrolledCourses.push(courseId);
+      }
+  
+      await enrollment.save();
+      res.status(200).json({ message: 'Successfully enrolled in course' });
+    } catch (error) {
+      console.error('Enrollment Error:', error);
+      res.status(500).json({ 
+        message: error.message,
+        stack: error.stack 
+      });
+    }
+  });
+  
+  // get enrolled courses for user
+  app.get('/users/enrolled-courses', authenticateToken, async (req, res) => {
+  try {
+    const enrollment = await Enrollment.findOne({ userId: req.user._id });
+    
+    if (!enrollment) {
+      return res.json({ enrolledCourses: [] });
+    }
+    
+    const enrolledCourses = await Course.find({
+      '_id': { $in: enrollment.enrolledCourses }
+    });
+    
+    res.json({ enrolledCourses });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 
-// Start server
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

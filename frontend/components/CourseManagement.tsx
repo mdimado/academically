@@ -1,9 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
@@ -41,7 +37,6 @@ const CourseManagement = () => {
     setError('');
 
     try {
-      // Get the token from localStorage
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -63,9 +58,6 @@ const CourseManagement = () => {
         throw new Error(data.message || 'Failed to add course');
       }
 
-      const data = await response.json();
-      
-      // Reset form and refresh courses
       setFormData({
         title: '',
         description: '',
@@ -108,80 +100,134 @@ const CourseManagement = () => {
   };
 
   return (
-    <div className="p-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Add New Course</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                name="title"
-                placeholder="Course Title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Textarea
-                name="description"
-                placeholder="Course Description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                name="duration"
-                placeholder="Duration (e.g., 8 weeks)"
-                value={formData.duration}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                name="instructor"
-                placeholder="Instructor Name"
-                value={formData.instructor}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit">Add Course</Button>
+    <div className="p-8 bg-white">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Add New Course Section */}
+        <div className="border-4 border-black p-8 
+          shadow-[8px_8px_0_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-bold uppercase mb-6 
+            bg-yellow-400 text-black p-4 border-2 border-black 
+            shadow-[6px_6px_0_rgba(0,0,0,1)]">
+            Add New Course
+          </h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <input
+              name="title"
+              placeholder="Course Title"
+              value={formData.title}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            
+            <textarea
+              name="description"
+              placeholder="Course Description"
+              value={formData.description}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg min-h-[120px]
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            
+            <input
+              name="duration"
+              placeholder="Duration (e.g., 8 weeks)"
+              value={formData.duration}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            
+            <input
+              name="instructor"
+              placeholder="Instructor Name"
+              value={formData.instructor}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border-4 border-black 
+                bg-white font-mono text-lg 
+                focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            
+            {error && (
+              <p className="text-white bg-red-600 border-2 border-black 
+                p-2 text-center font-bold uppercase">
+                {error}
+              </p>
+            )}
+            
+            <button 
+              type="submit" 
+              className="w-full py-4 text-lg font-bold uppercase 
+                bg-green-400 text-black border-4 border-black 
+                shadow-[6px_6px_0_rgba(0,0,0,1)] 
+                hover:bg-green-500 
+                active:translate-x-[2px] active:translate-y-[2px] 
+                active:shadow-[4px_4px_0_rgba(0,0,0,1)] 
+                transition-all duration-200"
+            >
+              Add Course
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Courses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <div className="border-4 border-black p-8 
+          shadow-[8px_8px_0_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-bold uppercase mb-6 
+            bg-blue-400 text-black p-4 border-2 border-black 
+            shadow-[6px_6px_0_rgba(0,0,0,1)]">
+            Existing Courses
+          </h2>
+          
+          <div className="space-y-6">
             {courses.map((course) => (
-              <div key={course._id} className="p-4 border rounded-lg flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{course.title}</h3>
-                  <p className="text-sm text-gray-600">{course.description}</p>
-                  <p className="text-sm text-gray-500">Duration: {course.duration}</p>
-                  <p className="text-sm text-gray-500">Instructor: {course.instructor}</p>
+              <div 
+                key={course._id} 
+                className="p-6 border-4 border-black bg-white 
+                  flex justify-between items-center 
+                  shadow-[6px_6px_0_rgba(0,0,0,1)] 
+                  hover:translate-x-[-4px] hover:translate-y-[-4px]
+                  transition-transform duration-200"
+              >
+                <div className="flex-grow pr-4">
+                  <h3 className="text-2xl font-bold uppercase mb-2">
+                    {course.title}
+                  </h3>
+                  <p className="font-mono text-sm mb-1">
+                    {course.description}
+                  </p>
+                  <p className="font-mono text-sm">
+                    Duration: {course.duration}
+                  </p>
+                  <p className="font-mono text-sm">
+                    Instructor: {course.instructor}
+                  </p>
                 </div>
-                <Button 
-                  variant="destructive" 
+                
+                <button 
                   onClick={() => handleDelete(course._id)}
+                  className="bg-red-400 text-black border-4 border-black 
+                    px-4 py-2 font-bold uppercase 
+                    shadow-[4px_4px_0_rgba(0,0,0,1)]
+                    hover:bg-red-500 
+                    active:translate-x-[2px] active:translate-y-[2px]
+                    active:shadow-[2px_2px_0_rgba(0,0,0,1)]
+                    transition-all duration-200"
                 >
                   Delete
-                </Button>
+                </button>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
